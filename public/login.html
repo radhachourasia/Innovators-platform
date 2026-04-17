@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Innovators</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { background-color: #09090b; color: white; font-family: 'Inter', sans-serif; }
+        .input-pro {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
+        }
+        .input-pro:focus {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: #00b4ff;
+            box-shadow: 0 0 0 4px rgba(0, 180, 255, 0.1);
+            outline: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center relative overflow-hidden">
+    <div class="absolute top-[-20%] left-[-10%] w-96 h-96 bg-blue-600/20 rounded-full blur-[100px] pointer-events-none"></div>
+    <div class="absolute bottom-[-20%] right-[-10%] w-96 h-96 bg-purple-600/20 rounded-full blur-[100px] pointer-events-none"></div>
+
+    <div class="w-full max-w-md p-8 relative z-10">
+        <div class="text-center mb-10">
+            <a href="index.html" class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-[#00b4ff] to-blue-600 shadow-lg shadow-blue-500/20 mb-6">
+                <i class="fas fa-bolt text-2xl text-white"></i>
+            </a>
+            <h2 class="text-3xl font-bold tracking-tight mb-2">Welcome back</h2>
+            <p class="text-zinc-400">Enter your credentials to access your dashboard</p>
+        </div>
+        
+        <form id="loginForm" class="space-y-5 bg-zinc-900/50 backdrop-blur-xl p-8 rounded-3xl border border-white/5 shadow-2xl">
+            <div>
+                <label class="block text-sm font-medium text-zinc-300 mb-2">Email Address</label>
+                <div class="relative">
+                    <i class="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500"></i>
+                    <input type="email" id="email" required placeholder="name@company.com"
+                           class="input-pro w-full rounded-xl pl-11 pr-4 py-3.5 text-sm text-white placeholder-zinc-600">
+                </div>
+            </div>
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <label class="block text-sm font-medium text-zinc-300">Password</label>
+                    <a href="#" class="text-xs text-[#00b4ff] hover:text-blue-400">Forgot?</a>
+                </div>
+                <div class="relative">
+                    <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500"></i>
+                    <input type="password" id="password" required placeholder="••••••••"
+                           class="input-pro w-full rounded-xl pl-11 pr-4 py-3.5 text-sm text-white placeholder-zinc-600">
+                </div>
+            </div>
+            
+            <button type="submit" class="w-full bg-[#00b4ff] hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-[0_0_20px_rgba(0,180,255,0.2)] hover:shadow-[0_0_30px_rgba(0,180,255,0.4)] mt-2">
+                Sign In
+            </button>
+        </form>
+        
+        <p class="text-center mt-8 text-sm text-zinc-400">
+            Don't have an account? 
+            <a href="register.html" class="text-white font-semibold hover:text-[#00b4ff] transition-colors">Create one now</a>
+        </p>
+    </div>
+    <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value.trim();
+
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await res.json();
+
+            if (res.ok && data.token) {
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                window.location.href = 'dashboard.html';
+            } else {
+                alert(data.msg || 'Login failed. Please check credentials.');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Server error. Please try again later.');
+        }
+    });
+</script>
+
+</body>
+</html>

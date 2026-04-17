@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Innovators - Home</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; background-color: #09090b; }
+        h1, h2, h3, .brand-text { font-family: 'Space Grotesk', sans-serif; }
+        
+        /* Smooth scrolling and transitions */
+        html { scroll-behavior: smooth; }
+        * { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        /* Premium Glow Effects */
+        .glow-bg {
+            position: absolute;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(0,180,255,0.15) 0%, rgba(0,0,0,0) 70%);
+            border-radius: 50%;
+            top: -100px; right: -100px;
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        .card-pro {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+        }
+        .card-pro:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(0, 180, 255, 0.3);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -10px rgba(0, 180, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="text-zinc-100 relative overflow-x-hidden">
+    <div class="glow-bg"></div>
+    <div class="glow-bg" style="top: auto; bottom: 10%; left: -200px; background: radial-gradient(circle, rgba(139,92,246,0.1) 0%, rgba(0,0,0,0) 70%);"></div>
+
+    <header class="fixed w-full top-0 z-50 bg-zinc-950/70 backdrop-blur-lg border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex items-center justify-between h-20">
+                <a href="index.html" class="flex items-center gap-3 group">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00b4ff] to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/40">
+                        <i class="fas fa-bolt text-white text-xl"></i>
+                    </div>
+                    <span class="text-2xl font-bold tracking-tight brand-text">Innovators</span>
+                </a>
+
+                <nav class="hidden md:flex items-center gap-8 text-sm font-medium">
+                    <a href="index.html" class="text-zinc-300 hover:text-white">Home</a>
+                    <a href="gallery.html" class="text-zinc-300 hover:text-white">Gallery</a>
+                    <div class="w-px h-4 bg-white/20"></div>
+                    <a href="login.html" id="nav-login" class="text-zinc-300 hover:text-white">Sign In</a>
+                    <a href="register.html" id="nav-register" class="px-5 py-2.5 bg-white text-black hover:bg-zinc-200 rounded-full font-semibold">Get Started</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <section class="min-h-screen flex items-center pt-24 pb-12">
+        <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
+            <div class="space-y-8 relative z-10">
+                <div class="inline-flex items-center gap-2 border border-blue-500/30 bg-blue-500/10 text-blue-400 text-xs font-semibold px-4 py-2 rounded-full">
+                    <span class="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
+                    v2.0 Now Live for Creators
+                </div>
+                
+                <h1 class="text-5xl md:text-7xl font-bold leading-[1.1] tracking-tight brand-text">
+                    Share ideas.<br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00b4ff] to-purple-500">Inspire the world.</span>
+                </h1>
+                
+                <p class="text-lg text-zinc-400 max-w-lg leading-relaxed">
+                    The premium platform for creators and researchers to upload prototypes, PDFs, and ideas. Get instant community feedback and approval.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <a href="register.html" class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-[#00b4ff] to-blue-600 hover:from-blue-500 hover:to-blue-700 text-white font-bold rounded-2xl flex items-center justify-center gap-3 shadow-lg shadow-blue-500/25">
+                        Start Uploading Free
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                    <a href="gallery.html" class="w-full sm:w-auto px-8 py-4 border border-zinc-700 hover:bg-zinc-800 text-white font-semibold rounded-2xl flex items-center justify-center gap-3">
+                        <i class="far fa-compass"></i> Explore Gallery
+                    </a>
+                </div>
+            </div>
+            
+            <div class="hidden md:block relative z-10 perspective-1000">
+                <div class="relative transform rotate-y-[-10deg] rotate-x-[5deg] hover:rotate-0 transition-transform duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-3xl blur-2xl opacity-20"></div>
+                    <div class="relative bg-zinc-900/80 backdrop-blur-xl border border-white/10 p-6 rounded-3xl shadow-2xl">
+                        <div class="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
+                            <div class="flex gap-1.5">
+                                <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                                <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                                <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                            </div>
+                            <div class="text-xs text-zinc-500 font-mono">dashboard / uploads</div>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/5">
+                                <div class="w-10 h-10 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-xl">📄</div>
+                                <div class="flex-1 space-y-2">
+                                    <div class="h-2 w-24 bg-zinc-600 rounded"></div>
+                                    <div class="h-2 w-16 bg-zinc-700 rounded"></div>
+                                </div>
+                                <div class="px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs rounded-full">Approved</div>
+                            </div>
+                            <div class="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/5">
+                                <div class="w-10 h-10 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center text-xl">🖼️</div>
+                                <div class="flex-1 space-y-2">
+                                    <div class="h-2 w-32 bg-zinc-600 rounded"></div>
+                                    <div class="h-2 w-20 bg-zinc-700 rounded"></div>
+                                </div>
+                                <div class="px-3 py-1 bg-amber-500/20 text-amber-400 text-xs rounded-full">Pending</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

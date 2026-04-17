@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Innovators</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { background-color: #09090b; color: white; font-family: 'Inter', sans-serif; }
+        .glass-panel { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <header class="bg-zinc-950/80 backdrop-blur-md border-b border-white/10 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-8">
+                <a href="index.html" class="flex items-center gap-2 text-xl font-bold">
+                    <i class="fas fa-bolt text-[#00b4ff]"></i> Innovators
+                </a>
+                <nav class="hidden md:flex gap-6 text-sm font-medium text-zinc-400">
+                    <a href="dashboard.html" class="text-white">Overview</a>
+                    <a href="pro-lectures.html" class="hover:text-white transition-colors">Pro Lectures</a>
+                    <a href="upload.html" class="hover:text-white transition-colors">Upload File</a>
+                </nav>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <span id="admin-link" class="hidden px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold rounded-lg cursor-pointer hover:bg-red-500/20" onclick="goToAdmin()">
+                    Admin Panel
+                </span>
+                <a href="profile.html" class="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center text-sm font-bold shadow-lg cursor-pointer" title="Profile">
+                    <i class="fas fa-user text-white/80"></i>
+                </a>
+                <button onclick="logout()" class="text-zinc-500 hover:text-red-400 transition-colors">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto px-6 py-10 w-full">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
+            <div>
+                <h1 class="text-3xl font-bold tracking-tight mb-1">My Dashboard</h1>
+                <p id="welcome-text" class="text-zinc-400 text-sm">Loading your workspace...</p>
+            </div>
+            <a href="upload.html" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-black hover:bg-zinc-200 font-semibold rounded-xl transition-colors text-sm">
+                <i class="fas fa-cloud-upload-alt"></i> New Upload
+            </a>
+        </div>
+
+        <h2 class="text-lg font-semibold mb-4 border-b border-white/5 pb-2">Your Uploads</h2>
+        
+        <div id="files-list" class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <p class="text-zinc-500">Loading files...</p>
+        </div>
+    </main>
+
+    <script>
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            if (!token || !user) {
+                window.location.href = 'login.html';
+                return null;
+            }
+            return JSON.parse(user);
+        }
+
+        async function loadFiles() {
+            const user = checkAuth();
+            if (!user) return;
+
+            document.getElementById('welcome-text').innerHTML = `Welcome back, <span class="text-[#00b4ff]">${user.name}</span>`;
+
+            // Admin Logic Check
+            if (user.role === 'admin' || user.email === "radhachourasia7@gmail.com") {
+                document.getElementById('admin-link').classList.remove('hidden');
+            }
+
+            try {
+                const res = await fetch('/api/files', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const files = await res.json();
+                const container = document.getElementById('files-list');
+                container.innerHTML = '';
+
+                if (files.length === 0) {
+                    container.innerHTML = `<p class="text-zinc-500 col-span-full">No files uploaded yet.</p>`;
+                    return;
+                }
+
+                files.forEach(file => {
+                    const statusColor = file.status === 'approved' ? 'emerald' : file.status === 'rejected' ? 'red' : 'amber';
+                    const iconClass = file.mimeType?.includes('pdf') ? 'fa-file-pdf text-red-400' : 'fa-image text-blue-400';
+                    
+                    container.innerHTML += `
+                        <div class="glass-panel p-6 rounded-2xl border border-white/5 hover:border-[#00b4ff]/30 transition-colors group">
+                            <div class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-2xl mb-4">
+                                <i class="fas ${iconClass}"></i>
+                            </div>
+                            <h3 class="font-medium text-lg mb-1 truncate group-hover:text-[#00b4ff] transition-colors" title="${file.originalName}">${file.originalName}</h3>
+                            <div class="flex items-center justify-between mt-6 border-t border-white/5 pt-4">
+                                <span class="px-2.5 py-1 bg-${statusColor}-500/10 text-${statusColor}-400 text-[10px] rounded-md font-bold uppercase tracking-wider">${file.status}</span>
+                                <button onclick="downloadFile('${file._id}')" class="text-zinc-400 hover:text-white p-2"><i class="fas fa-download"></i></button>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (err) {
+                alert("Session expired, please login again.");
+                logout();
+            }
+        }
+
+        async function downloadFile(fileId) {
+            const token = localStorage.getItem('token');
+            try {
+                const res = await fetch(`/api/files/download/${fileId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) throw new Error("Download failed");
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = "downloaded_file";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            } catch (err) {
+                alert("Error downloading file");
+            }
+        }
+
+        function goToAdmin() { window.location.href = 'admin.html'; }
+        function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+        window.onload = loadFiles;
+    </script>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload File - Innovators</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { background-color: #09090b; color: white; font-family: 'Inter', sans-serif; }
+        .glass-panel { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); }
+        
+        /* Custom File Input Styling */
+        .file-drop-area {
+            border: 2px dashed rgba(0, 180, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        .file-drop-area:hover, .file-drop-area.dragover {
+            background: rgba(0, 180, 255, 0.05);
+            border-color: rgba(0, 180, 255, 0.8);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col relative">
+
+    <header class="bg-zinc-950/80 backdrop-blur-md border-b border-white/10 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <a href="dashboard.html" class="text-zinc-400 hover:text-white transition-colors text-sm font-medium flex items-center gap-2">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center text-sm font-bold shadow-lg">
+                    <i class="fas fa-user text-white/80"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow flex items-center justify-center px-6 py-12 w-full relative z-10">
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#00b4ff]/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+        <div class="glass-panel w-full max-w-lg p-10 rounded-3xl shadow-2xl relative">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-blue-500/10 text-[#00b4ff] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 border border-blue-500/20">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <h1 class="text-3xl font-bold tracking-tight mb-2">Upload Innovation</h1>
+                <p class="text-zinc-400 text-sm">Share your PDFs, images, or documents with the community. Max size 50MB.</p>
+            </div>
+
+            <form id="uploadForm" class="space-y-6">
+                <div class="file-drop-area rounded-2xl p-8 text-center cursor-pointer relative" id="drop-area">
+                    <input type="file" id="fileInput" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept=".pdf,.png,.jpg,.jpeg">
+                    
+                    <div id="file-info">
+                        <i class="fas fa-file-upload text-4xl text-zinc-500 mb-3"></i>
+                        <h3 class="text-lg font-semibold text-white mb-1">Click to browse</h3>
+                        <p class="text-xs text-zinc-500">or drag and drop your file here</p>
+                    </div>
+                    
+                    <div id="file-selected" class="hidden flex flex-col items-center">
+                        <i class="fas fa-file-alt text-4xl text-[#00b4ff] mb-3"></i>
+                        <h3 id="filename-display" class="text-sm font-semibold text-white mb-1 truncate w-full px-4">filename.pdf</h3>
+                        <p class="text-xs text-emerald-400 font-medium">Ready to upload</p>
+                    </div>
+                </div>
+
+                <button type="submit" id="uploadBtn" class="w-full bg-[#00b4ff] hover:bg-blue-500 text-white font-bold py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(0,180,255,0.2)] hover:shadow-[0_0_30px_rgba(0,180,255,0.4)] flex justify-center items-center gap-2">
+                    <i class="fas fa-paper-plane"></i> Submit File
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        // Authentication Check
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+
+        // UI Interactions for File Input
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('file-info');
+        const fileSelected = document.getElementById('file-selected');
+        const filenameDisplay = document.getElementById('filename-display');
+        const dropArea = document.getElementById('drop-area');
+
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                filenameDisplay.textContent = file.name;
+                fileInfo.classList.add('hidden');
+                fileSelected.classList.remove('hidden');
+                dropArea.classList.add('bg-blue-500/5', 'border-[#00b4ff]');
+            } else {
+                fileInfo.classList.remove('hidden');
+                fileSelected.classList.add('hidden');
+                dropArea.classList.remove('bg-blue-500/5', 'border-[#00b4ff]');
+            }
+        });
+
+        // Form Submit Handler
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const file = fileInput.files[0];
+            if (!file) {
+                alert("Please select a file first!");
+                return;
+            }
+
+            const uploadBtn = document.getElementById('uploadBtn');
+            const originalBtnText = uploadBtn.innerHTML;
+            
+            // Loading State
+            uploadBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Uploading...`;
+            uploadBtn.disabled = true;
+            uploadBtn.classList.add('opacity-70');
+
+            // ⚠️ IMPORTANT: For files, we MUST use FormData and NOT JSON
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const res = await fetch('/api/files/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                        // Note: We DO NOT set 'Content-Type'. The browser sets it automatically to 'multipart/form-data' with the correct boundary.
+                    },
+                    body: formData
+                });
+
+                if (res.ok) {
+                    alert('✅ File uploaded successfully! Waiting for Admin approval.');
+                    window.location.href = 'dashboard.html';
+                } else {
+                    const data = await res.json();
+                    alert('❌ Upload failed: ' + (data.msg || data.error || 'Server error'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('❌ Connection error. Is your server running?');
+            } finally {
+                // Restore Button State
+                uploadBtn.innerHTML = originalBtnText;
+                uploadBtn.disabled = false;
+                uploadBtn.classList.remove('opacity-70');
+            }
+        });
+    </script>
+</body>
+</html>

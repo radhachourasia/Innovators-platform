@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Innovators - Register</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { background-color: #09090b; color: white; font-family: 'Inter', sans-serif; }
+        .input-pro {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
+        }
+        .input-pro:focus {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: #00b4ff;
+            box-shadow: 0 0 0 4px rgba(0, 180, 255, 0.1);
+            outline: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center relative overflow-hidden">
+    <div class="absolute top-[-20%] right-[-10%] w-96 h-96 bg-purple-600/20 rounded-full blur-[100px] pointer-events-none"></div>
+    <div class="absolute bottom-[-20%] left-[-10%] w-96 h-96 bg-[#00b4ff]/20 rounded-full blur-[100px] pointer-events-none"></div>
+
+    <div class="w-full max-w-md p-8 relative z-10">
+        <div class="text-center mb-8">
+            <a href="index.html" class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-[#00b4ff] to-blue-600 shadow-lg shadow-blue-500/20 mb-6">
+                <i class="fas fa-bolt text-2xl text-white"></i>
+            </a>
+            <h2 class="text-3xl font-bold tracking-tight mb-2">Create Account</h2>
+            <p class="text-zinc-400">Join the community of innovators in 30 seconds</p>
+        </div>
+        
+        <form id="registerForm" class="space-y-5 bg-zinc-900/50 backdrop-blur-xl p-8 rounded-3xl border border-white/5 shadow-2xl">
+            <div>
+                <label class="block text-sm font-medium text-zinc-300 mb-2">Full Name</label>
+                <div class="relative">
+                    <i class="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500"></i>
+                    <input type="text" id="name" required placeholder="John Doe"
+                           class="input-pro w-full rounded-xl pl-11 pr-4 py-3.5 text-sm text-white placeholder-zinc-600">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-zinc-300 mb-2">Email Address</label>
+                <div class="relative">
+                    <i class="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500"></i>
+                    <input type="email" id="email" required placeholder="name@company.com"
+                           class="input-pro w-full rounded-xl pl-11 pr-4 py-3.5 text-sm text-white placeholder-zinc-600">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-zinc-300 mb-2">Password</label>
+                <div class="relative">
+                    <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500"></i>
+                    <input type="password" id="password" required placeholder="Create a strong password"
+                           class="input-pro w-full rounded-xl pl-11 pr-4 py-3.5 text-sm text-white placeholder-zinc-600">
+                </div>
+            </div>
+            
+            <button type="submit" class="w-full bg-[#00b4ff] hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-[0_0_20px_rgba(0,180,255,0.2)] hover:shadow-[0_0_30px_rgba(0,180,255,0.4)] mt-4">
+                Register Now
+            </button>
+        </form>
+        
+        <p class="text-center mt-8 text-sm text-zinc-400">
+            Already have an account? 
+            <a href="login.html" class="text-white font-semibold hover:text-[#00b4ff] transition-colors">Sign in here</a>
+        </p>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    alert('Registration successful! Please login.');
+                    window.location.href = 'login.html';
+                } else {
+                    alert(data.msg || 'Registration failed');
+                }
+            } catch (err) {
+                alert('Server error. Make sure server is running.');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - Innovators</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { background-color: #09090b; color: white; font-family: 'Inter', sans-serif; }
+        .glass-panel { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <header class="bg-zinc-950/80 backdrop-blur-md border-b border-white/10 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <a href="dashboard.html" class="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors text-sm font-medium">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <button onclick="logout()" class="text-red-400 hover:text-red-300 transition-colors text-sm font-medium flex items-center gap-2">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </header>
+
+    <div class="max-w-2xl mx-auto px-6 py-16 w-full relative">
+        <div class="absolute top-20 left-1/2 -translate-x-1/2 w-64 h-64 bg-blue-500/20 rounded-full blur-[80px] pointer-events-none"></div>
+        
+        <div class="glass-panel rounded-3xl p-10 relative z-10 shadow-2xl">
+            <div class="flex flex-col items-center text-center">
+                <div class="w-28 h-28 bg-gradient-to-br from-[#00b4ff] to-purple-600 rounded-[2rem] flex items-center justify-center text-5xl shadow-xl shadow-blue-500/20 mb-6 border border-white/10">
+                    <i class="fas fa-user-astronaut text-white/90"></i>
+                </div>
+                <h2 id="profile-name" class="text-3xl font-bold tracking-tight">Loading...</h2>
+                <p id="profile-email" class="text-zinc-400 mt-2 flex items-center justify-center gap-2">
+                    <i class="fas fa-envelope text-xs"></i> <span id="email-text">...</span>
+                </p>
+                <div class="mt-4 px-3 py-1 bg-blue-500/10 text-blue-400 text-xs font-semibold rounded-full border border-blue-500/20">
+                    Verified Innovator
+                </div>
+            </div>
+
+            <div class="mt-10 grid grid-cols-2 gap-4 text-sm">
+                <div class="bg-black/40 border border-white/5 rounded-2xl p-6 text-center hover:border-white/10 transition-colors">
+                    <p class="text-zinc-500 font-medium mb-1 uppercase tracking-wider text-[10px]">Status</p>
+                    <p class="text-xl font-bold text-emerald-400">Active</p>
+                </div>
+                <div class="bg-black/40 border border-white/5 rounded-2xl p-6 text-center hover:border-white/10 transition-colors">
+                    <p class="text-zinc-500 font-medium mb-1 uppercase tracking-wider text-[10px]">Total Uploads</p>
+                    <p id="total-uploads" class="text-xl font-bold text-[#00b4ff]">0</p>
+                </div>
+            </div>
+
+            <div class="mt-10 pt-6 border-t border-white/5">
+                <button onclick="logout()" 
+                        class="w-full py-4 bg-red-500/5 hover:bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors">
+                    <i class="fas fa-power-off"></i>
+                    Sign out from all devices
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.onload = async () => {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (!user.name) return window.location.href = 'login.html';
+
+            document.getElementById('profile-name').textContent = user.name;
+            document.getElementById('email-text').textContent = user.email;
+
+            // Fetch total uploads
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch('/api/files', { headers: { Authorization: `Bearer ${token}` } });
+                if(res.ok) {
+                    const files = await res.json();
+                    document.getElementById('total-uploads').textContent = files.length || 0;
+                }
+            } catch(e) {
+                console.error("Error fetching files count");
+            }
+        };
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

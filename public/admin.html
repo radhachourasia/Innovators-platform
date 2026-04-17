@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Area - Innovators</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { background-color: #09090b; color: white; font-family: 'Inter', sans-serif; }
+        .admin-card { background: rgba(255,255,255,0.02); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col relative">
+
+    <header class="bg-zinc-950/80 backdrop-blur-md border-b border-red-500/20 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <a href="dashboard.html" class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-red-500 flex items-center justify-center shadow-lg shadow-red-500/20">
+                    <i class="fas fa-shield-alt text-white text-sm"></i>
+                </div>
+                <span class="text-xl font-bold tracking-tight">Admin Console</span>
+            </a>
+            <button onclick="logout()" class="text-zinc-400 hover:text-red-400 transition-colors text-sm font-medium flex items-center gap-2">
+                <i class="fas fa-sign-out-alt"></i> Exit Admin
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto px-6 py-10 w-full">
+        <div class="mb-10">
+            <h1 class="text-3xl font-bold tracking-tight mb-2">Upload Requests</h1>
+            <p class="text-zinc-400 text-sm">Review and manage content uploaded by users.</p>
+        </div>
+
+        <div id="admin-files" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <p class="text-zinc-500">Loading requests...</p>
+        </div>
+    </main>
+
+    <script>
+        async function loadAdminFiles() {
+            const token = localStorage.getItem('token');
+            if(!token) return window.location.href = 'login.html';
+
+            try {
+                const res = await fetch('/api/files/all', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if(!res.ok) {
+                    document.getElementById('admin-files').innerHTML = `<p class="text-red-400">Access Denied. Please ensure you are logged in as admin.</p>`;
+                    return;
+                }
+
+                const files = await res.json();
+                const container = document.getElementById('admin-files');
+                container.innerHTML = '';
+
+                if(files.length === 0) {
+                    container.innerHTML = `<p class="text-zinc-500">No files found in the database.</p>`;
+                    return;
+                }
+
+                files.forEach(file => {
+                    const isApproved = file.status === 'approved';
+                    const isRejected = file.status === 'rejected';
+                    
+                    let statusColor = 'amber';
+                    if (isApproved) statusColor = 'emerald';
+                    if (isRejected) statusColor = 'red';
+                    
+                    const statusText = file.status.charAt(0).toUpperCase() + file.status.slice(1);
+
+                    const card = document.createElement('div');
+                    card.className = `admin-card border border-${statusColor}-500/30 rounded-2xl p-5 flex flex-col relative overflow-hidden transition-all`;
+                    
+                    card.innerHTML = `
+                        <div class="absolute top-0 right-0 px-3 py-1 bg-${statusColor}-500/20 text-${statusColor}-400 text-[10px] font-bold uppercase tracking-wider rounded-bl-lg">
+                            ${statusText}
+                        </div>
+                        
+                        <div class="flex items-start gap-4 mb-5 mt-2">
+                            <div class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-2xl shrink-0">
+                                <i class="fas ${file.mimeType?.includes('pdf') ? 'fa-file-pdf text-red-400' : 'fa-image text-blue-400'}"></i>
+                            </div>
+                            <div class="flex-1 overflow-hidden">
+                                <p class="text-xs text-zinc-500 font-medium mb-1 truncate"><i class="fas fa-user mr-1"></i> ${file.user?.name || 'Unknown'}</p>
+                                <h3 class="font-bold text-base truncate" title="${file.originalName}">${file.originalName}</h3>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3 mt-auto">
+                            <button onclick="updateStatus('${file._id}', 'approved')" 
+                                    class="flex-1 py-2.5 ${isApproved ? 'opacity-30 cursor-not-allowed' : 'bg-emerald-500/10 hover:bg-emerald-500 hover:text-white'} text-emerald-400 border border-emerald-500/20 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2" 
+                                    ${isApproved ? 'disabled' : ''}>
+                                <i class="fas fa-check"></i> Approve
+                            </button>
+                            <button onclick="updateStatus('${file._id}', 'rejected')" 
+                                    class="flex-1 py-2.5 ${isRejected ? 'opacity-30 cursor-not-allowed' : 'bg-red-500/10 hover:bg-red-500 hover:text-white'} text-red-400 border border-red-500/20 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2" 
+                                    ${isRejected ? 'disabled' : ''}>
+                                <i class="fas fa-times"></i> Reject
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch(e) {
+                console.error(e);
+                document.getElementById('admin-files').innerHTML = `<p class="text-red-400">Server Error.</p>`;
+            }
+        }
+
+        async function updateStatus(id, status) {
+            if (!confirm(`Are you sure you want to mark this as ${status}?`)) return;
+            const token = localStorage.getItem('token');
+            try {
+                await fetch(`/api/files/approve/${id}`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status })
+                });
+                loadAdminFiles();
+            } catch(e) {
+                alert("Status update failed.");
+            }
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
+
+        window.onload = loadAdminFiles;
+    </script>
+</body>
+</html>
