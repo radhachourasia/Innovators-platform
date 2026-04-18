@@ -43,18 +43,33 @@
     <main class="flex-grow max-w-7xl mx-auto px-6 py-10 w-full">
         <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
             <div>
-                <h1 class="text-3xl font-bold tracking-tight mb-1">My Dashboard</h1>
+                <h1 class="text-3xl font-bold tracking-tight mb-1">My Workspace</h1>
                 <p id="welcome-text" class="text-zinc-400 text-sm">Loading your workspace...</p>
             </div>
-            <a href="upload.html" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-black hover:bg-zinc-200 font-semibold rounded-xl transition-colors text-sm">
+            <a href="upload.html" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-black hover:bg-zinc-200 font-semibold rounded-xl transition-colors text-sm shadow-lg shadow-white/10">
                 <i class="fas fa-cloud-upload-alt"></i> New Upload
             </a>
         </div>
 
-        <h2 class="text-lg font-semibold mb-4 border-b border-white/5 pb-2">Your Uploads</h2>
+        <h2 class="text-lg font-semibold mb-4 border-b border-white/5 pb-2 flex items-center gap-2">
+            <i class="fas fa-folder text-[#00b4ff]"></i> Your Uploads
+        </h2>
+        <div id="files-list" class="grid md:grid-cols-2 lg:grid-cols-3 gap-5 mb-16">
+            <p class="text-zinc-500">Loading your files...</p>
+        </div>
+
+        <div class="flex items-center gap-3 mb-6 border-b border-white/5 pb-4 mt-8">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-lg shadow-lg shadow-purple-500/20">
+                <i class="fas fa-globe text-white"></i>
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold tracking-tight">Community Feed</h2>
+                <p class="text-zinc-400 text-sm">Explore approved innovations from all creators</p>
+            </div>
+        </div>
         
-        <div id="files-list" class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-            <p class="text-zinc-500">Loading files...</p>
+        <div id="public-files-list" class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <p class="text-zinc-500">Loading community files...</p>
         </div>
     </main>
 
@@ -69,17 +84,23 @@
             return JSON.parse(user);
         }
 
-        async function loadFiles() {
+        async function loadDashboard() {
             const user = checkAuth();
             if (!user) return;
 
             document.getElementById('welcome-text').innerHTML = `Welcome back, <span class="text-[#00b4ff]">${user.name}</span>`;
 
-            // Admin Logic Check
             if (user.role === 'admin' || user.email === "radhachourasia7@gmail.com") {
                 document.getElementById('admin-link').classList.remove('hidden');
             }
 
+            // Load both sections simultaneously
+            loadMyFiles();
+            loadPublicFiles();
+        }
+
+        // Fetch User's Own Files
+        async function loadMyFiles() {
             try {
                 const res = await fetch('/api/files', {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
@@ -89,7 +110,7 @@
                 container.innerHTML = '';
 
                 if (files.length === 0) {
-                    container.innerHTML = `<p class="text-zinc-500 col-span-full">No files uploaded yet.</p>`;
+                    container.innerHTML = `<p class="text-zinc-500 col-span-full bg-white/5 p-4 rounded-xl border border-white/5">You haven't uploaded any files yet.</p>`;
                     return;
                 }
 
@@ -111,14 +132,60 @@
                     `;
                 });
             } catch (err) {
-                alert("Session expired, please login again.");
-                logout();
+                console.error(err);
+            }
+        }
+
+        // Fetch All Approved Community Files
+        async function loadPublicFiles() {
+            try {
+                const res = await fetch('/api/files/public');
+                const files = await res.json();
+                const container = document.getElementById('public-files-list');
+                container.innerHTML = '';
+
+                if (files.length === 0) {
+                    container.innerHTML = `<p class="text-zinc-500 col-span-full bg-white/5 p-4 rounded-xl border border-white/5">No approved community files available yet.</p>`;
+                    return;
+                }
+
+                files.forEach(file => {
+                    const iconClass = file.mimeType?.includes('pdf') ? 'fa-file-pdf text-red-400' : 'fa-image text-blue-400';
+                    const uploaderName = file.user?.name || 'Anonymous';
+                    
+                    container.innerHTML += `
+                        <div class="glass-panel p-6 rounded-2xl border border-white/5 hover:border-purple-500/30 transition-colors group relative overflow-hidden">
+                            <div class="absolute top-0 right-0 px-3 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase tracking-wider rounded-bl-lg shadow-sm">
+                                Approved
+                            </div>
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-2xl shrink-0">
+                                    <i class="fas ${iconClass}"></i>
+                                </div>
+                                <div class="flex-1 overflow-hidden pt-1">
+                                    <h3 class="font-bold text-lg mb-0.5 truncate group-hover:text-purple-400 transition-colors" title="${file.originalName}">${file.originalName}</h3>
+                                    <p class="text-xs text-zinc-500 truncate"><i class="fas fa-user-circle mr-1"></i> By ${uploaderName}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between mt-4 pt-4 border-t border-white/5">
+                                <span class="text-xs text-zinc-600 font-medium">${new Date(file.createdAt).toLocaleDateString()}</span>
+                                <button onclick="downloadFile('${file._id}')" class="w-8 h-8 rounded-full bg-white/5 hover:bg-purple-500 hover:text-white flex items-center justify-center transition-colors shadow-md">
+                                    <i class="fas fa-download text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (err) {
+                console.error(err);
             }
         }
 
         async function downloadFile(fileId) {
             const token = localStorage.getItem('token');
             try {
+                // If it's a public download, it still uses the same route which requires auth, 
+                // but since we are on dashboard, user is logged in.
                 const res = await fetch(`/api/files/download/${fileId}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (!res.ok) throw new Error("Download failed");
                 const blob = await res.blob();
@@ -136,7 +203,9 @@
 
         function goToAdmin() { window.location.href = 'admin.html'; }
         function logout() { localStorage.clear(); window.location.href = 'login.html'; }
-        window.onload = loadFiles;
+        
+        // Start loading when page is ready
+        window.onload = loadDashboard;
     </script>
 </body>
 </html>
