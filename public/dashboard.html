@@ -73,7 +73,7 @@
         </div>
     </main>
 
-    <script>
+       <script>
         function checkAuth() {
             const token = localStorage.getItem('token');
             const user = localStorage.getItem('user');
@@ -94,7 +94,6 @@
                 document.getElementById('admin-link').classList.remove('hidden');
             }
 
-            // Load both sections simultaneously
             loadMyFiles();
             loadPublicFiles();
         }
@@ -118,6 +117,7 @@
                     const statusColor = file.status === 'approved' ? 'emerald' : file.status === 'rejected' ? 'red' : 'amber';
                     const iconClass = file.mimeType?.includes('pdf') ? 'fa-file-pdf text-red-400' : 'fa-image text-blue-400';
                     
+                    // ध्यान दें: यहाँ onclick में हमने file.originalName पास किया है
                     container.innerHTML += `
                         <div class="glass-panel p-6 rounded-2xl border border-white/5 hover:border-[#00b4ff]/30 transition-colors group">
                             <div class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-2xl mb-4">
@@ -126,7 +126,7 @@
                             <h3 class="font-medium text-lg mb-1 truncate group-hover:text-[#00b4ff] transition-colors" title="${file.originalName}">${file.originalName}</h3>
                             <div class="flex items-center justify-between mt-6 border-t border-white/5 pt-4">
                                 <span class="px-2.5 py-1 bg-${statusColor}-500/10 text-${statusColor}-400 text-[10px] rounded-md font-bold uppercase tracking-wider">${file.status}</span>
-                                <button onclick="downloadFile('${file._id}')" class="text-zinc-400 hover:text-white p-2"><i class="fas fa-download"></i></button>
+                                <button onclick="downloadFile('${file._id}', '${file.originalName}')" class="text-zinc-400 hover:text-white p-2"><i class="fas fa-download"></i></button>
                             </div>
                         </div>
                     `;
@@ -153,6 +153,7 @@
                     const iconClass = file.mimeType?.includes('pdf') ? 'fa-file-pdf text-red-400' : 'fa-image text-blue-400';
                     const uploaderName = file.user?.name || 'Anonymous';
                     
+                    // ध्यान दें: यहाँ onclick में हमने file.originalName पास किया है
                     container.innerHTML += `
                         <div class="glass-panel p-6 rounded-2xl border border-white/5 hover:border-purple-500/30 transition-colors group relative overflow-hidden">
                             <div class="absolute top-0 right-0 px-3 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase tracking-wider rounded-bl-lg shadow-sm">
@@ -169,7 +170,7 @@
                             </div>
                             <div class="flex items-center justify-between mt-4 pt-4 border-t border-white/5">
                                 <span class="text-xs text-zinc-600 font-medium">${new Date(file.createdAt).toLocaleDateString()}</span>
-                                <button onclick="downloadFile('${file._id}')" class="w-8 h-8 rounded-full bg-white/5 hover:bg-purple-500 hover:text-white flex items-center justify-center transition-colors shadow-md">
+                                <button onclick="downloadFile('${file._id}', '${file.originalName}')" class="w-8 h-8 rounded-full bg-white/5 hover:bg-purple-500 hover:text-white flex items-center justify-center transition-colors shadow-md">
                                     <i class="fas fa-download text-xs"></i>
                                 </button>
                             </div>
@@ -181,18 +182,17 @@
             }
         }
 
-        async function downloadFile(fileId) {
+        // Updated Download Function (Now uses original file name)
+        async function downloadFile(fileId, fileName) {
             const token = localStorage.getItem('token');
             try {
-                // If it's a public download, it still uses the same route which requires auth, 
-                // but since we are on dashboard, user is logged in.
                 const res = await fetch(`/api/files/download/${fileId}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (!res.ok) throw new Error("Download failed");
                 const blob = await res.blob();
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = "downloaded_file";
+                a.download = fileName || "downloaded_file"; // 👈 यहाँ पर असली नाम सेट हो रहा है
                 document.body.appendChild(a);
                 a.click();
                 a.remove();
@@ -204,8 +204,8 @@
         function goToAdmin() { window.location.href = 'admin.html'; }
         function logout() { localStorage.clear(); window.location.href = 'login.html'; }
         
-        // Start loading when page is ready
         window.onload = loadDashboard;
     </script>
+
 </body>
 </html>
